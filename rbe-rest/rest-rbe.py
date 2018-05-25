@@ -7,35 +7,35 @@ app = Flask(__name__)
 
 @app.route("/rbe/atendimentos/<ano>/<mes>")
 def getAtendimentos(ano, mes):
-    sql = "SELECT unidade, ano, mes, dia, munic || ' (' || uf || ')' AS munic, "
-    sql = sql + " sexo, sala, fx_etaria, count(*) as quant "
-    sql = sql + " FROM ( "
-    sql = sql + " select DISTINCT u.descricaoabreviada as unidade,  "
-    sql = sql + " f.codpaciente, f.uf, f.nome AS munic,  f.sexo, "
-    sql = sql + " f.nomeinterno AS sala,   "
-    sql = sql + " f.datanascimento, EXTRACT(YEAR FROM age(f.dataatendimento, f.datanascimento)) AS idade,  "
-    sql = sql + " CASE WHEN EXTRACT(YEAR FROM age(f.dataatendimento, f.datanascimento)) <= 1 THEN 'A:(0 -  1) RECEM NASCIDO '  "
-    sql = sql + "      WHEN EXTRACT(YEAR FROM age(f.dataatendimento, f.datanascimento)) <=11 THEN 'B:(1 - 11) INFANCIA '  "
-    sql = sql + " 	 WHEN EXTRACT(YEAR FROM age(f.dataatendimento, f.datanascimento)) <=17 THEN 'C:(12 -17) ADOLESCENCIA '  "
-    sql = sql + " 	 WHEN EXTRACT(YEAR FROM age(f.dataatendimento, f.datanascimento)) <=40 THEN 'D:(18 -40) ADULTO JOVEM '  "
-    sql = sql + " 	 WHEN EXTRACT(YEAR FROM age(f.dataatendimento, f.datanascimento)) <=65 THEN 'E:(41 -65) ADULTO '  "
-    sql = sql + "      ELSE 'F:(+65) IDOSO '  "
-    sql = sql + " END AS fx_etaria,   "
-    sql = sql + "  EXTRACT(YEAR FROM f.dataatendimento) as ano, "
-    sql = sql + "  EXTRACT(MONTH FROM f.dataatendimento) as mes, "
-    sql = sql + "  EXTRACT(DAY FROM f.dataatendimento) as dia "
-    sql = sql + " from dbo.pas_filaatendimento AS f, "
-    sql = sql + " dbo.pas_unidade as u "
-    sql = sql + "  where "
-    sql = sql + "  f.cnes = u.cnes "
-    sql = sql + "   AND EXTRACT(YEAR FROM f.dataatendimento) = " + ano
+    sql =       "SELECT unidade, ano, mes, dia, munic || ' (' || uf || ')' AS munic, bairro,  codbairrogeo,                                      "
+    sql = sql + " sexo, sala, fx_etaria, count(*) as quant                                                                                 "
+    sql = sql + " FROM (                                                                                                                   "
+    sql = sql + " select DISTINCT u.descricaoabreviada as unidade,                                                                         "
+    sql = sql + " f.codpaciente, f.uf, f.nome AS munic, b.bairro, m.geo_ind as codbairrogeo,  f.sexo,                                                      "
+    sql = sql + " f.nomeinterno AS sala,                                                                                                   "
+    sql = sql + " f.datanascimento, EXTRACT(YEAR FROM age(f.dataatendimento, f.datanascimento)) AS idade,                                  "
+    sql = sql + " CASE WHEN EXTRACT(YEAR FROM age(f.dataatendimento, f.datanascimento)) <= 1 THEN 'A:(0 -  1) RECEM NASCIDO '              "
+    sql = sql + "      WHEN EXTRACT(YEAR FROM age(f.dataatendimento, f.datanascimento)) <=11 THEN 'B:(1 - 11) INFANCIA '                   "
+    sql = sql + " 	 WHEN EXTRACT(YEAR FROM age(f.dataatendimento, f.datanascimento)) <=17 THEN 'C:(12 -17) ADOLESCENCIA '                 "
+    sql = sql + " 	 WHEN EXTRACT(YEAR FROM age(f.dataatendimento, f.datanascimento)) <=40 THEN 'D:(18 -40) JOVEM '                        "
+    sql = sql + " 	 WHEN EXTRACT(YEAR FROM age(f.dataatendimento, f.datanascimento)) <=65 THEN 'E:(41 -65) ADULTO '                       "
+    sql = sql + "      ELSE 'F:(+65) IDOSO '                                                                                               "
+    sql = sql + " END AS fx_etaria,                                                                                                        "
+    sql = sql + "  EXTRACT(YEAR FROM f.dataatendimento) as ano,                                                                            "
+    sql = sql + "  EXTRACT(MONTH FROM f.dataatendimento) as mes,                                                                           "
+    sql = sql + "  EXTRACT(DAY FROM f.dataatendimento) as dia                                                                              "
+    sql = sql + " from dbo.pas_filaatendimento AS f                                                                                        "
+    sql = sql + " left join dbo.pas_unidade as u on f.cnes = u.cnes                                                                        "
+    sql = sql + " left join dbo.bairros as b on f.codbairro = b.codbairro                                                                  "
+    sql = sql + " left join dbo.bairro_map as m on b.codbairro = m.codbairro 													           "
+    sql = sql + "  where                                                                                                                   "
+    sql = sql + "   EXTRACT(YEAR FROM f.dataatendimento) = "  + ano
     sql = sql + "   AND EXTRACT(MONTH FROM f.dataatendimento) = " + mes
-    sql = sql + "   AND f.dataexclusao IS NULL "
-    sql = sql + "   AND f.nomeinterno IN ('ClinicoGeral', 'Odontologia', 'Pediatria', 'ServicoSocial', 'Traumatologia', 'Urgencia')   "
-    sql = sql + "  ) AS tp "
-    sql = sql + " GROUP BY 1,2,3,4,5,6, 7, 8 "
+    sql = sql + "   AND f.dataexclusao IS NULL                                                                                             "
+    sql = sql + "   AND f.nomeinterno IN ('ClinicoGeral', 'Odontologia', 'Pediatria', 'ServicoSocial', 'Traumatologia', 'Urgencia')        "
+    sql = sql + "  ) AS tp                                                                                                                 "
+    sql = sql + " GROUP BY 1,2,3,4,5,6, 7, 8, 9,10                                                                                         "
     my_query = query_db(sql)
-   # json_output = json.dumps(my_query)
     return jsonify(my_query)
 
 
